@@ -570,6 +570,36 @@ h1 {
   margin-right: 6px;
 }
 
+.moon-shot {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--vw-card-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.moon-shot-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--vw-yellow);
+  cursor: pointer;
+  user-select: none;
+}
+
+.moon-shot-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--vw-yellow);
+}
+
+.moon-shot-checkbox span {
+  font-size: 0.95rem;
+}
+
 .btn-primary {
   background: linear-gradient(90deg, var(--vw-purple), var(--vw-pink));
 }
@@ -948,11 +978,18 @@ h1 {
   }
   .hand-meta {
     margin-bottom: 10px;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .bid-taker {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .moon-shot {
+    width: 100%;
+    justify-content: center;
   }
 
   .hand-actions button {

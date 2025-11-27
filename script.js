@@ -79,6 +79,7 @@ const modeCardsBtn = document.getElementById('modeCardsBtn');
 const modeManualBtn = document.getElementById('modeManualBtn');
 const manualTeam1Input = document.getElementById('manualTeam1');
 const manualTeam2Input = document.getElementById('manualTeam2');
+const shootMoonCheckbox = document.getElementById('shootMoonCheckbox');
 
 // Initialize the game
 function init() {
@@ -241,6 +242,7 @@ function clearHand() {
   bidTakerInputs.forEach(i => { i.checked = false; });
   manualTeam1Input.value = 0;
   manualTeam2Input.value = 0;
+  shootMoonCheckbox.checked = false;
 }
 
 // Apply hand to score
@@ -271,6 +273,9 @@ function applyHand() {
     return;
   }
 
+  // Check if Shoot the Moon is active
+  const shootingMoon = shootMoonCheckbox.checked;
+
   // Build description
   let description1, description2;
   if (currentHand.mode === 'manual') {
@@ -283,7 +288,33 @@ function applyHand() {
     description2 = `Hand: ${team2Points || 'none'} (${team2Total})`;
   }
 
-  // Handle bid results
+  // Handle Shoot the Moon
+  if (shootingMoon) {
+    const bidderTotal = bidTeam === 1 ? team1Total : team2Total;
+    const bidderKey = bidTeam === 1 ? 'team1' : 'team2';
+    const bidderName = gameState[bidderKey].name;
+
+    if (bidderTotal === 10) {
+      // Moon shot successful - instant win
+      showWinner(bidderName, gameState[bidderKey].score, true);
+      const desc = bidTeam === 1 ? description1 : description2;
+      addPoints(bidTeam, 0, `${desc} - 🌙 SHOT THE MOON! Instant Win!`);
+      lastHandResult = { bidTaker: bidTeam, madeBid: true };
+    } else {
+      // Moon shot failed - instant loss
+      const otherTeam = bidTeam === 1 ? 2 : 1;
+      const otherKey = otherTeam === 1 ? 'team1' : 'team2';
+      const otherName = gameState[otherKey].name;
+      showWinner(otherName, gameState[otherKey].score, true);
+      const desc = bidTeam === 1 ? description1 : description2;
+      addPoints(bidTeam, 0, `${desc} - 🌙 MISSED THE MOON! Instant Loss!`);
+      lastHandResult = { bidTaker: bidTeam, madeBid: false };
+    }
+    clearHand();
+    return;
+  }
+
+  // Handle normal bid results
   if (bidTeam === 1) {
     if (team1Total >= team1Bid) {
       addPoints(1, team1Total, `${description1} - Made bid (${team1Bid})`);
@@ -379,8 +410,12 @@ function checkWinner() {
 }
 
 // Show winner modal
-function showWinner(teamName, score) {
-  winnerText.textContent = `${teamName} wins with ${score} points!`;
+function showWinner(teamName, score, isMoonShot = false) {
+  if (isMoonShot) {
+    winnerText.textContent = `🌙 ${teamName} wins by shooting the moon! 🌙`;
+  } else {
+    winnerText.textContent = `${teamName} wins with ${score} points!`;
+  }
   winnerModal.classList.add('show');
 }
 
