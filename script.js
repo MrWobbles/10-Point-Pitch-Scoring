@@ -82,6 +82,7 @@ const menuToggleBtn = document.getElementById('menuToggle');
 const settingsDrawer = document.getElementById('settingsDrawer');
 const drawerCloseBtn = document.getElementById('drawerClose');
 const pointModeSelect = document.getElementById('pointMode');
+const teamConfigSelect = document.getElementById('teamConfig');
 
 // Bid elements
 const bidInputs = document.querySelectorAll('.bid-input');
@@ -115,6 +116,10 @@ function init() {
   }
   applyPointMode(currentPointModeKey);
   if (pointModeSelect) pointModeSelect.value = currentPointModeKey;
+
+  // Load teams/players config (metadata for now; UI remains 2 teams)
+  const savedTeamCfg = localStorage.getItem('pitchTeamConfig') || '2p';
+  if (teamConfigSelect) teamConfigSelect.value = savedTeamCfg;
   updateDisplay();
   updateBidTeamNames();
   updateHandTeamNames();
@@ -580,6 +585,14 @@ function attachEventListeners() {
   if (pointModeSelect) {
     pointModeSelect.addEventListener('change', (e) => {
       applyPointMode(e.target.value);
+    });
+  }
+
+  // Teams/Players change (persist selection; future: adapt UI)
+  if (teamConfigSelect) {
+    teamConfigSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      localStorage.setItem('pitchTeamConfig', val);
     });
   }
 

@@ -43,10 +43,17 @@
             <input type="number" id="winningScore" value="52" min="1">
           </div>
           <div class="setting">
-            <label for="pointMode">Point Mode:</label>
+            <label for="pointMode">Game Type:</label>
             <select id="pointMode">
               <option value="TenPoint">10-Point (Jokers On)</option>
               <option value="EightPointNoJokers">8-Point (No Jokers)</option>
+            </select>
+          </div>
+          <div class="setting">
+            <label for="teamConfig">Teams / Players:</label>
+            <select id="teamConfig">
+              <option value="2p">2 Players (1v1)</option>
+              <option value="4p">4 Players (2v2)</option>
             </select>
           </div>
           <button id="newGame" class="btn btn-secondary">New Game</button>
