@@ -131,6 +131,7 @@ let currentHand = {
   team1: new Set(),
   team2: new Set(),
   mode: 'cards', // 'cards' or 'manual'
+  trump: 'SPADE', // Current trump suit: SPADE, HEART, DIAMOND, CLUB
   manual: {
     team1: 0,
     team2: 0
@@ -198,6 +199,8 @@ const team2NameInput = document.getElementById('team2NameInput');
 const handPointBtns = document.querySelectorAll('.hand-point-btn');
 const handTeamNames = document.querySelectorAll('.hand-team-name');
 const handTotalValues = document.querySelectorAll('.hand-total-value');
+const trumpSelector = document.getElementById('trumpSelector');
+const trumpBtns = document.querySelectorAll('.trump-btn');
 const applyHandBtn = document.getElementById('applyHandBtn');
 const clearHandBtn = document.getElementById('clearHandBtn');
 const bidTakerInputs = document.querySelectorAll('input[name="bidTaker"]');
@@ -287,7 +290,16 @@ function applyPointMode(modeKey) {
   const grids = document.querySelectorAll('.hand-points-grid');
   grids.forEach(grid => {
     const team = grid.closest('.hand-team').querySelector('.hand-team-name').dataset.team;
-    grid.innerHTML = mode.points.map(p => `<button class="hand-point-btn" data-team="${team}" data-point="${p.key}">${p.label}</button>`).join('');
+    grid.innerHTML = mode.points.map(p => {
+      const imgPath = getCardImagePath(p.key, currentHand.trump);
+      if (imgPath) {
+        return `<button class="hand-point-btn" data-team="${team}" data-point="${p.key}" title="${p.label}">
+          <img src="${imgPath}" alt="${p.label}" class="card-img">
+        </button>`;
+      } else {
+        return `<button class="hand-point-btn" data-team="${team}" data-point="${p.key}">${p.label}</button>`;
+      }
+    }).join('');
   });
 
   // Re-bind point button listeners and clear current selections
@@ -305,6 +317,81 @@ function applyPointMode(modeKey) {
   }
   // Refresh rules content
   renderRules();
+}
+
+// Map card keys to SVG file paths based on trump suit
+function getCardImagePath(cardKey, trumpSuit) {
+  const suitMap = {
+    'SPADE': 'SPADE',
+    'HEART': 'HEART',
+    'DIAMOND': 'DIAMOND',
+    'CLUB': 'CLUB'
+  };
+
+  const suit = suitMap[trumpSuit] || 'SPADE';
+
+  // Map card keys to card numbers
+  const cardMap = {
+    'A': '1',
+    'High': '1',
+    'J': '11-JACK',
+    'Jack': '11-JACK',
+    'Jick': '11-JACK',
+    'OffJack': '11-JACK',
+    'OffAce': '1',
+    '10': '10',
+    '5': '5',
+    'Five': '5',
+    '3': '3',
+    'Off3': '3',
+    '2': '2',
+    'Low': '2',
+    'K': '13-KING',
+    'Q': '12-QUEEN',
+    'HighJoker': 'JOKER-1',
+    'LowJoker': 'JOKER-2',
+    'Joker': 'JOKER-1'
+  };
+
+  const cardNum = cardMap[cardKey];
+
+  // Jokers don't have suits
+  if (cardNum && cardNum.startsWith('JOKER')) {
+    return `img/cards/${cardNum}.svg`;
+  }
+
+  // Off-Jack, Off-Ace, Off-3 are the opposite color
+  if (cardKey === 'Jick' || cardKey === 'OffJack') {
+    const offSuit = getOffJackSuit(trumpSuit);
+    return `img/cards/${offSuit}-${cardMap['J']}.svg`;
+  }
+
+  if (cardKey === 'OffAce') {
+    const offSuit = getOffJackSuit(trumpSuit);
+    return `img/cards/${offSuit}-1.svg`;
+  }
+
+  if (cardKey === 'Off3') {
+    const offSuit = getOffJackSuit(trumpSuit);
+    return `img/cards/${offSuit}-3.svg`;
+  }
+
+  if (cardNum) {
+    return `img/cards/${suit}-${cardNum}.svg`;
+  }
+
+  return null;
+}
+
+// Get the off-jack suit (same color, different suit)
+function getOffJackSuit(trumpSuit) {
+  const offJackMap = {
+    'SPADE': 'CLUB',
+    'CLUB': 'SPADE',
+    'HEART': 'DIAMOND',
+    'DIAMOND': 'HEART'
+  };
+  return offJackMap[trumpSuit] || 'CLUB';
 }
 
 function handPointBtnsRefetch() {
@@ -722,6 +809,21 @@ function attachEventListeners() {
   modeCardsBtn.addEventListener('click', () => setMode('cards'));
   modeManualBtn.addEventListener('click', () => setMode('manual'));
 
+  // Trump suit selection
+  trumpBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const suit = btn.dataset.suit;
+      currentHand.trump = suit;
+
+      // Update active state
+      trumpBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Re-render cards with new trump suit
+      applyPointMode(currentPointModeKey);
+    });
+  });
+
   // Manual inputs
   manualTeam1Input.addEventListener('input', () => {
     currentHand.manual.team1 = Math.max(0, Math.min(totalPointsInMode, parseInt(manualTeam1Input.value) || 0));
@@ -1078,56 +1180,74 @@ function renderRules() {
   const total = mode.points.reduce((s, p) => s + p.value, 0);
   const moonEnabled = new Set(['SevenPoint', 'EightPointNoJokers', 'NinePoint', 'TenPoint', 'ElevenPoint', 'ThirteenPoint']).has(currentPointModeKey);
 
-  rulesTitle.textContent = `Rules — ${mode.label}`;
+  rulesTitle.textContent = `${mode.label}`;
 
   const pointsList = mode.points
-    .map(p => `<li><span>${p.label}</span><span>${p.value} pt${p.value !== 1 ? 's' : ''}</span></li>`)
+    .map(p => `<li><span class="point-name">${p.label}</span><span class="point-value">${p.value} pt${p.value !== 1 ? 's' : ''}</span></li>`)
     .join('');
 
-  const moonText = moonEnabled
-    ? 'Shoot the Moon is available: bidder must capture all points for an instant win; otherwise, instant loss.'
-    : 'Shoot the Moon is not available in this mode.';
-
-  const biddingText = `Bids auto-sum to ${total}. The higher bid takes the bid. Bidder must meet or exceed their bid or lose the bid amount. Opponent scores the points they capture.`;
-  const scoringText = 'Score the hand at end of play. You can select cards or switch to manual totals.';
-  const winText = 'To win, a team must reach the winning score and must have taken and made the most recent bid.';
+  const moonSection = moonEnabled ? `
+    <div class="rules-section">
+      <h3>🌙 Shoot the Moon</h3>
+      <p><strong>High risk, high reward:</strong> Bidder attempts to capture <em>all ${total} points</em>.</p>
+      <ul class="rules-list">
+        <li><strong>Success:</strong> Instant win (game over immediately)</li>
+        <li><strong>Failure:</strong> Miss any point = instant loss</li>
+        <li>Check the "🌙 Shoot the Moon" box before applying the hand</li>
+      </ul>
+    </div>
+  ` : '';
 
   // Game-specific explanation for modes that include a Game point
   const hasGamePoint = mode.points.some(p => p.key === 'Game');
-  let gameSection = '';
-  if (hasGamePoint) {
-    gameSection = `
-      <div class="rules-section">
-        <h3>Game Scoring</h3>
-        <ul>
-          <li>Team with the most card points wins <b>Game</b> (1 point).</li>
-          <li>Card values: <b>Ten=10</b>, <b>Ace=4</b>, <b>King=3</b>, <b>Queen=2</b>, <b>Jack=1</b>.</li>
-          <li>All other ranks and any Jokers count 0 toward Game.</li>
-          <li>Counts from all tricks your team captures (not just trump).</li>
+  const gameSection = hasGamePoint ? `
+    <div class="rules-section">
+      <h3>🃏 Game Point</h3>
+      <p>Team with the <strong>most card points</strong> wins the <strong>Game</strong> point (worth 1).</p>
+      <div class="card-values">
+        <h4>Card Values for Game:</h4>
+        <ul class="rules-list">
+          <li>Ten = <strong>10</strong></li>
+          <li>Ace = <strong>4</strong></li>
+          <li>King = <strong>3</strong></li>
+          <li>Queen = <strong>2</strong></li>
+          <li>Jack = <strong>1</strong></li>
+          <li>All other cards & Jokers = <strong>0</strong></li>
         </ul>
+        <p class="note">Counted from <em>all tricks</em> your team captures (not just trump).</p>
       </div>
-    `;
-  }
+    </div>
+  ` : '';
 
   rulesContent.innerHTML = `
     <div class="rules-section">
-      <h3>Points (${total} total)</h3>
+      <h3>📊 Points Available (${total} total)</h3>
       <ul class="rules-points">${pointsList}</ul>
     </div>
+
     <div class="rules-section">
-      <h3>Bidding</h3>
-      <p>${biddingText}</p>
+      <h3>🎯 Bidding</h3>
+      <ul class="rules-list">
+        <li>Bids automatically sum to <strong>${total}</strong></li>
+        <li>Higher bidder takes the bid (auto-selected)</li>
+        <li><strong>Made bid:</strong> Bidder scores earned points if ≥ bid</li>
+        <li><strong>Lost bid:</strong> Bidder loses bid amount if &lt; bid</li>
+        <li>Opponent <em>always</em> scores the points they capture</li>
+      </ul>
     </div>
-    <div class="rules-section">
-      <h3>Moon Shot</h3>
-      <p>${moonText}</p>
-    </div>
-    <div class="rules-section">
-      <h3>Scoring & Win</h3>
-      <p>${scoringText}</p>
-      <p>${winText}</p>
-    </div>
+
+    ${moonSection}
+
     ${gameSection}
+
+    <div class="rules-section">
+      <h3>🏆 Winning</h3>
+      <ul class="rules-list">
+        <li>Reach the winning score (default 52)</li>
+        <li><strong>Must take and make the bid</strong> in the final hand</li>
+        <li>Score the hand at end of play (cards or manual entry)</li>
+      </ul>
+    </div>
   `;
 }
 

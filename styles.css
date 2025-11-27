@@ -475,6 +475,66 @@ h1 {
   font-size: 1.8rem;
 }
 
+.trump-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  border: 2px solid var(--vw-card-border);
+}
+
+.trump-selector label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--vw-cyan);
+}
+
+.trump-options {
+  display: flex;
+  gap: 8px;
+}
+
+.trump-btn {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--vw-white);
+  border: 2px solid var(--vw-card-border);
+  border-radius: 8px;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trump-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: scale(1.05);
+}
+
+.trump-btn.active {
+  background: linear-gradient(135deg, var(--vw-pink), var(--vw-purple));
+  border-color: var(--vw-cyan);
+  box-shadow: 0 0 12px rgba(77, 238, 234, 0.4);
+}
+
+.trump-btn[data-suit="HEART"],
+.trump-btn[data-suit="DIAMOND"] {
+  color: #ff6b9d;
+}
+
+.trump-btn[data-suit="SPADE"],
+.trump-btn[data-suit="CLUB"] {
+  color: var(--vw-white);
+}
+
 .hand-tracker {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -498,13 +558,13 @@ h1 {
 
 .hand-points-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   margin-bottom: 15px;
 }
 
 .hand-point-btn {
-  padding: 12px;
+  padding: 10px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--vw-white);
   border: 2px solid var(--vw-card-border);
@@ -513,6 +573,18 @@ h1 {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.hand-point-btn .card-img {
+  width: 100%;
+  height: auto;
+  max-width: 80px;
+  display: block;
+  pointer-events: none;
 }
 
 .hand-point-btn:hover {
@@ -524,6 +596,7 @@ h1 {
   background: linear-gradient(90deg, var(--vw-pink), var(--vw-cyan));
   color: #0d1b2a;
   border-color: transparent;
+  box-shadow: 0 0 16px rgba(77, 238, 234, 0.6);
 }
 
 .hand-total {
@@ -874,15 +947,124 @@ h1 {
   text-align: center;
 }
 
+.rules-section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(77, 238, 234, 0.2);
+}
+
+.rules-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
 .rules-section h3 {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   color: var(--vw-cyan);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(77, 238, 234, 0.4);
+}
+
+.rules-section h4 {
+  margin: 12px 0 8px 0;
+  color: var(--vw-pink);
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 #rulesContent {
   font-size: 0.95rem;
   color: var(--vw-white);
-  line-height: 1.5;
+  line-height: 1.6;
+}
+
+#rulesContent p {
+  margin: 8px 0;
+  color: var(--vw-muted);
+}
+
+#rulesContent strong {
+  color: var(--vw-white);
+  font-weight: 600;
+}
+
+#rulesContent em {
+  color: var(--vw-cyan);
+  font-style: normal;
+}
+
+#rulesContent ul.rules-list {
+  margin: 10px 0 0 0;
+  list-style: none;
+  padding-left: 0;
+}
+
+#rulesContent ul.rules-list li {
+  margin: 6px 0;
+  padding-left: 20px;
+  position: relative;
+  color: var(--vw-muted);
+}
+
+#rulesContent ul.rules-list li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--vw-pink);
+  font-weight: bold;
+}
+
+.rules-points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  list-style: none;
+  margin: 12px 0 0 0 !important;
+  padding: 12px;
+  background: rgba(77, 238, 234, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(77, 238, 234, 0.2);
+}
+
+.rules-points li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  margin: 0 !important;
+}
+
+.rules-points .point-name {
+  color: var(--vw-white);
+  font-weight: 500;
+}
+
+.rules-points .point-value {
+  color: var(--vw-cyan);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.card-values {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(247, 37, 133, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(247, 37, 133, 0.2);
+}
+
+.card-values ul {
+  margin: 8px 0 !important;
+  padding-left: 0 !important;
+}
+
+.card-values .note {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--vw-yellow);
+  font-style: italic;
 }
 
 #rulesContent ul {
@@ -977,13 +1159,18 @@ h1 {
   }
 
   .hand-points-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 
   .hand-point-btn {
     padding: 10px;
     font-size: 0.85rem;
+    min-height: 90px;
+  }
+
+  .hand-point-btn .card-img {
+    max-width: 70px;
   }
 }
 
@@ -1117,14 +1304,31 @@ h1 {
     padding: 15px;
   }
 
+  .trump-selector {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .trump-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 1.6rem;
+  }
+
   .hand-points-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
 
   .hand-point-btn {
-    padding: 10px 8px;
+    padding: 8px;
     font-size: 0.8rem;
+    min-height: 80px;
+  }
+
+  .hand-point-btn .card-img {
+    max-width: 60px;
   }
 
   .hand-total {
@@ -1285,15 +1489,35 @@ h1 {
     padding: 8px;
   }
 
+  .trump-selector {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .trump-selector label {
+    font-size: 0.9rem;
+  }
+
+  .trump-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.4rem;
+  }
+
   .hand-points-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
+    gap: 6px;
   }
 
   .hand-point-btn {
     padding: 8px 6px;
     font-size: 0.75rem;
     border-width: 1px;
+    min-height: 70px;
+  }
+
+  .hand-point-btn .card-img {
+    max-width: 50px;
   }
 
   .hand-total {
