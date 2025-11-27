@@ -369,27 +369,27 @@ function getCardImagePath(cardKey, trumpSuit) {
 
   // Jokers don't have suits
   if (cardNum && cardNum.startsWith('JOKER')) {
-    return `img/cards/${cardNum}.svg`;
+    return `img/Cards/${cardNum}.svg`;
   }
 
   // Off-Jack, Off-Ace, Off-3 are the opposite color
   if (cardKey === 'Jick' || cardKey === 'OffJack') {
     const offSuit = getOffJackSuit(trumpSuit);
-    return `img/cards/${offSuit}-${cardMap['J']}.svg`;
+    return `img/Cards/${offSuit}-${cardMap['J']}.svg`;
   }
 
   if (cardKey === 'OffAce') {
     const offSuit = getOffJackSuit(trumpSuit);
-    return `img/cards/${offSuit}-1.svg`;
+    return `img/Cards/${offSuit}-1.svg`;
   }
 
   if (cardKey === 'Off3') {
     const offSuit = getOffJackSuit(trumpSuit);
-    return `img/cards/${offSuit}-3.svg`;
+    return `img/Cards/${offSuit}-3.svg`;
   }
 
   if (cardNum) {
-    return `img/cards/${suit}-${cardNum}.svg`;
+    return `img/Cards/${suit}-${cardNum}.svg`;
   }
 
   return null;
