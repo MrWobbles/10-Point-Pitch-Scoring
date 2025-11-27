@@ -435,7 +435,7 @@ function updateAllTeamNames() {
 function saveGame() {
   // Don't save if in spectator mode
   if (isSpectatorMode) return;
-  
+
   gameState.team1.name = team1Name.textContent;
   gameState.team2.name = team2Name.textContent;
   gameState.winningScore = parseInt(winningScoreInput.value);
@@ -1119,10 +1119,11 @@ function joinAsSpectator() {
       if (data && data.state) {
         gameState = data.state;
         currentPointModeKey = data.pointMode || 'TenPoint';
+        // Update team names FIRST before any other updates
+        updateAllTeamNames();
         applyPointMode(currentPointModeKey);
         if (pointModeSelect) pointModeSelect.value = currentPointModeKey;
         updateDisplay();
-        updateAllTeamNames();
         renderRules();
         const dt = new Date();
         setSyncStatus('ok', `Live: ${dt.toLocaleTimeString()}`);
