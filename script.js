@@ -210,6 +210,18 @@ const modeManualBtn = document.getElementById('modeManualBtn');
 const manualTeam1Input = document.getElementById('manualTeam1');
 const manualTeam2Input = document.getElementById('manualTeam2');
 const shootMoonCheckbox = document.getElementById('shootMoonCheckbox');
+// Sync status elements
+const syncStatusEl = document.getElementById('syncStatus');
+const syncTextEl = syncStatusEl ? syncStatusEl.querySelector('.sync-text') : null;
+
+function setSyncStatus(state, text) {
+  if (!syncStatusEl) return;
+  syncStatusEl.hidden = false;
+  syncStatusEl.classList.remove('sync-ok', 'sync-fail');
+  if (state === 'ok') syncStatusEl.classList.add('sync-ok');
+  if (state === 'fail') syncStatusEl.classList.add('sync-fail');
+  if (syncTextEl && text) syncTextEl.textContent = text;
+}
 
 // Initialize the game
 function init() {
@@ -422,12 +434,17 @@ function saveGame() {
   // Sync to Firebase if hosting
   if (gameState.shareCode && database && !isSpectatorMode) {
     const gameRef = database.ref(`games/${gameState.shareCode}`);
+    setSyncStatus('ok', 'Syncing…');
     gameRef.update({
       state: gameState,
       pointMode: currentPointModeKey,
       lastUpdate: Date.now()
+    }).then(() => {
+      const dt = new Date();
+      setSyncStatus('ok', `Synced ${dt.toLocaleTimeString()}`);
     }).catch(err => {
       console.error('❌ Failed to sync to Firebase:', err);
+      setSyncStatus('fail', 'Sync failed');
     });
   }
 }
@@ -1093,6 +1110,8 @@ function joinAsSpectator() {
         updateDisplay();
         updateAllTeamNames();
         renderRules();
+        const dt = new Date();
+        setSyncStatus('ok', `Live: ${dt.toLocaleTimeString()}`);
       }
     });
 

@@ -88,6 +88,41 @@ h1 {
   gap: 10px;
 }
 
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--vw-card-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+  color: var(--vw-muted);
+}
+
+.sync-status .sync-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--vw-muted);
+  box-shadow: 0 0 6px var(--vw-muted);
+}
+
+.sync-status.sync-ok .sync-dot {
+  background: var(--vw-cyan);
+  box-shadow: 0 0 8px rgba(77, 238, 234, 0.6);
+}
+
+.sync-status.sync-fail .sync-dot {
+  background: #ff5c73;
+  box-shadow: 0 0 8px rgba(255, 92, 115, 0.6);
+}
+
+.sync-status .sync-text {
+  font-weight: 600;
+  color: var(--vw-white);
+}
+
 .sticky-top {
   position: sticky;
   top: 0;
