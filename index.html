@@ -12,8 +12,12 @@
   <div class="container">
     <header class="topbar">
       <h1>10-Point Pitch</h1>
-      <button id="menuToggle" class="btn btn-primary" aria-controls="settingsDrawer"
-        aria-expanded="false">Settings</button>
+      <div class="topbar-actions">
+        <button id="rulesToggle" class="btn btn-secondary" aria-controls="rulesDrawer"
+          aria-expanded="false">Rules</button>
+        <button id="menuToggle" class="btn btn-primary" aria-controls="settingsDrawer"
+          aria-expanded="false">Settings</button>
+      </div>
     </header>
 
     <aside id="settingsDrawer" class="drawer" aria-hidden="true">
@@ -45,8 +49,15 @@
           <div class="setting">
             <label for="pointMode">Game Type:</label>
             <select id="pointMode">
-              <option value="TenPoint">10-Point (Jokers On)</option>
+              <option value="FourPoint">4-Point (High/Low/Jack/Game)</option>
+              <option value="FivePoint">5-Point (Add Off-Jack)</option>
+              <option value="SixPoint">6-Point (Add Joker)</option>
+              <option value="SevenPoint">7-Point (No 3)</option>
               <option value="EightPointNoJokers">8-Point (No Jokers)</option>
+              <option value="NinePoint">9-Point (Five is 5)</option>
+              <option value="TenPoint" selected>10-Point (Jokers On)</option>
+              <option value="ElevenPoint">11-Point (Add Off-Ace)</option>
+              <option value="ThirteenPoint">13-Point (Add Off-3)</option>
             </select>
           </div>
           <div class="setting">
@@ -63,6 +74,19 @@
           <h3>Score History</h3>
           <div id="historyList"></div>
           <button id="undoBtn" class="btn btn-secondary" disabled>Undo Last Score</button>
+        </section>
+      </div>
+    </aside>
+
+    <aside id="rulesDrawer" class="drawer drawer-left" aria-hidden="true">
+      <div class="drawer-header">
+        <h2>Game Rules</h2>
+        <button id="rulesClose" class="btn btn-fail" aria-label="Close Rules">Close ✕</button>
+      </div>
+      <div class="drawer-content">
+        <section class="rules-section">
+          <h3 id="rulesTitle">Mode</h3>
+          <div id="rulesContent"></div>
         </section>
       </div>
     </aside>

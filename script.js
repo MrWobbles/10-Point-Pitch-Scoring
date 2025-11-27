@@ -1,5 +1,47 @@
 // Point modes and values
 const pointModes = {
+  FourPoint: {
+    label: '4-Point',
+    points: [
+      { key: 'High', label: 'High', value: 1 },
+      { key: 'Low', label: 'Low', value: 1 },
+      { key: 'Jack', label: 'Jack', value: 1 },
+      { key: 'Game', label: 'Game', value: 1 }
+    ]
+  },
+  FivePoint: {
+    label: '5-Point',
+    points: [
+      { key: 'High', label: 'High', value: 1 },
+      { key: 'Low', label: 'Low', value: 1 },
+      { key: 'Jack', label: 'Jack', value: 1 },
+      { key: 'OffJack', label: 'Off-Jack', value: 1 },
+      { key: 'Game', label: 'Game', value: 1 }
+    ]
+  },
+  SixPoint: {
+    label: '6-Point',
+    points: [
+      { key: 'High', label: 'High', value: 1 },
+      { key: 'Low', label: 'Low', value: 1 },
+      { key: 'Jack', label: 'Jack', value: 1 },
+      { key: 'OffJack', label: 'Off-Jack', value: 1 },
+      { key: 'Joker', label: 'Joker', value: 1 },
+      { key: 'Game', label: 'Game', value: 1 }
+    ]
+  },
+  SevenPoint: {
+    label: '7-Point',
+    points: [
+      { key: 'A', label: 'A', value: 1 },
+      { key: 'J', label: 'J', value: 1 },
+      { key: 'OffJack', label: 'Off-Jack', value: 1 },
+      { key: 'HighJoker', label: 'High Joker', value: 1 },
+      { key: 'LowJoker', label: 'Low Joker', value: 1 },
+      { key: '10', label: '10', value: 1 },
+      { key: '2', label: '2', value: 1 }
+    ]
+  },
   TenPoint: {
     label: '10-Point (Jokers On)',
     points: [
@@ -18,9 +60,47 @@ const pointModes = {
     points: [
       { key: 'A', label: 'A', value: 1 },
       { key: 'J', label: 'J', value: 1 },
-      { key: 'Jick', label: 'Jick', value: 1 },
+      { key: 'OffJack', label: 'Off-Jack', value: 1 },
       { key: '10', label: '10', value: 1 },
       { key: '3', label: '3', value: 3 },
+      { key: '2', label: '2', value: 1 }
+    ]
+  },
+  NinePoint: {
+    label: '9-Point',
+    points: [
+      { key: 'High', label: 'High', value: 1 },
+      { key: 'Low', label: 'Low', value: 1 },
+      { key: 'Jack', label: 'Jack', value: 1 },
+      { key: 'Five', label: 'Five', value: 5 },
+      { key: 'Game', label: 'Game', value: 1 }
+    ]
+  },
+  ElevenPoint: {
+    label: '11-Point',
+    points: [
+      { key: 'A', label: 'A', value: 1 },
+      { key: 'OffAce', label: 'Off-Ace', value: 1 },
+      { key: 'J', label: 'J', value: 1 },
+      { key: 'OffJack', label: 'Off-Jack', value: 1 },
+      { key: 'HighJoker', label: 'High Joker', value: 1 },
+      { key: 'LowJoker', label: 'Low Joker', value: 1 },
+      { key: '10', label: '10', value: 1 },
+      { key: '3', label: '3', value: 3 },
+      { key: '2', label: '2', value: 1 }
+    ]
+  },
+  ThirteenPoint: {
+    label: '13-Point',
+    points: [
+      { key: 'A', label: 'A', value: 1 },
+      { key: 'J', label: 'J', value: 1 },
+      { key: 'OffJack', label: 'Off-Jack', value: 1 },
+      { key: 'HighJoker', label: 'High Joker', value: 1 },
+      { key: 'LowJoker', label: 'Low Joker', value: 1 },
+      { key: '10', label: '10', value: 1 },
+      { key: '3', label: '3', value: 3 },
+      { key: 'Off3', label: 'Off-3', value: 3 },
       { key: '2', label: '2', value: 1 }
     ]
   }
@@ -83,6 +163,11 @@ const settingsDrawer = document.getElementById('settingsDrawer');
 const drawerCloseBtn = document.getElementById('drawerClose');
 const pointModeSelect = document.getElementById('pointMode');
 const teamConfigSelect = document.getElementById('teamConfig');
+const rulesToggleBtn = document.getElementById('rulesToggle');
+const rulesDrawer = document.getElementById('rulesDrawer');
+const rulesCloseBtn = document.getElementById('rulesClose');
+const rulesTitle = document.getElementById('rulesTitle');
+const rulesContent = document.getElementById('rulesContent');
 
 // Bid elements
 const bidInputs = document.querySelectorAll('.bid-input');
@@ -126,6 +211,7 @@ function init() {
   attachEventListeners();
   // Enforce initial UI for score mode
   setScoreModeUI(currentHand.mode);
+  renderRules();
 }
 
 // Load game from localStorage
@@ -181,6 +267,14 @@ function applyPointMode(modeKey) {
   updateHandTotals();
   // Re-sync bids to sum to total
   syncBidInputs('1');
+  // Toggle moon-shot control visibility based on mode
+  const moonShotContainer = document.querySelector('.moon-shot');
+  const moonEnabledModes = new Set(['SevenPoint', 'EightPointNoJokers', 'NinePoint', 'TenPoint', 'ElevenPoint', 'ThirteenPoint']);
+  if (moonShotContainer) {
+    moonShotContainer.hidden = !moonEnabledModes.has(modeKey);
+  }
+  // Refresh rules content
+  renderRules();
 }
 
 function handPointBtnsRefetch() {
@@ -366,8 +460,9 @@ function applyHand() {
     return;
   }
 
-  // Check if Shoot the Moon is active
-  const shootingMoon = shootMoonCheckbox.checked;
+  // Check if Shoot the Moon is active for this mode
+  const moonEnabledModes = new Set(['SevenPoint', 'EightPointNoJokers', 'NinePoint', 'TenPoint', 'ElevenPoint', 'ThirteenPoint']);
+  const shootingMoon = moonEnabledModes.has(currentPointModeKey) && shootMoonCheckbox.checked;
 
   // Build description
   let description1, description2;
@@ -548,6 +643,26 @@ function attachEventListeners() {
     if (e.key === 'Escape') closeDrawer();
   });
 
+  // Rules drawer toggle
+  const openRules = () => {
+    if (!rulesDrawer) return;
+    rulesDrawer.classList.add('open');
+    rulesDrawer.setAttribute('aria-hidden', 'false');
+    if (rulesToggleBtn) rulesToggleBtn.setAttribute('aria-expanded', 'true');
+  };
+  const closeRules = () => {
+    if (!rulesDrawer) return;
+    rulesDrawer.classList.remove('open');
+    rulesDrawer.setAttribute('aria-hidden', 'true');
+    if (rulesToggleBtn) rulesToggleBtn.setAttribute('aria-expanded', 'false');
+  };
+  if (rulesToggleBtn) rulesToggleBtn.addEventListener('click', openRules);
+  if (rulesCloseBtn) rulesCloseBtn.addEventListener('click', closeRules);
+  // Close rules drawer on Escape as well
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeRules();
+  });
+
   // Hand point buttons
   handPointBtns.forEach(btn => {
     btn.addEventListener('click', () => toggleHandPoint(btn));
@@ -566,13 +681,13 @@ function attachEventListeners() {
 
   // Manual inputs
   manualTeam1Input.addEventListener('input', () => {
-    currentHand.manual.team1 = Math.max(0, Math.min(10, parseInt(manualTeam1Input.value) || 0));
+    currentHand.manual.team1 = Math.max(0, Math.min(totalPointsInMode, parseInt(manualTeam1Input.value) || 0));
     manualTeam1Input.value = currentHand.manual.team1;
     updateHandTotals();
   });
 
   manualTeam2Input.addEventListener('input', () => {
-    currentHand.manual.team2 = Math.max(0, Math.min(10, parseInt(manualTeam2Input.value) || 0));
+    currentHand.manual.team2 = Math.max(0, Math.min(totalPointsInMode, parseInt(manualTeam2Input.value) || 0));
     manualTeam2Input.value = currentHand.manual.team2;
     updateHandTotals();
   });
@@ -612,23 +727,42 @@ function attachEventListeners() {
 
   // Team name changes
   team1Name.addEventListener('blur', () => {
+    if (!team1Name.textContent.trim()) {
+      team1Name.textContent = 'Team 1';
+    }
     saveGame();
     updateBidTeamNames();
   });
   team2Name.addEventListener('blur', () => {
+    if (!team2Name.textContent.trim()) {
+      team2Name.textContent = 'Team 2';
+    }
     saveGame();
     updateBidTeamNames();
   });
 
   // Team name input changes
+  // Settings drawer name inputs: live preview on input; commit on blur
   team1NameInput.addEventListener('input', () => {
-    gameState.team1.name = team1NameInput.value || 'Team 1';
+    // Live preview only; allow empty while typing
+    team1Name.textContent = team1NameInput.value;
+    updateBidTeamNames();
+  });
+  team1NameInput.addEventListener('blur', () => {
+    const val = (team1NameInput.value || '').trim();
+    gameState.team1.name = val || 'Team 1';
     updateAllTeamNames();
     saveGame();
   });
 
   team2NameInput.addEventListener('input', () => {
-    gameState.team2.name = team2NameInput.value || 'Team 2';
+    // Live preview only; allow empty while typing
+    team2Name.textContent = team2NameInput.value;
+    updateBidTeamNames();
+  });
+  team2NameInput.addEventListener('blur', () => {
+    const val = (team2NameInput.value || '').trim();
+    gameState.team2.name = val || 'Team 2';
     updateAllTeamNames();
     saveGame();
   });
@@ -672,6 +806,66 @@ function setScoreModeUI(mode, handManualContainers, handPointsGrids) {
     manualEls.forEach(el => el.hidden = true);
     gridEls.forEach(el => el.hidden = false);
   }
+}
+
+// Render rules for the current point mode
+function renderRules() {
+  if (!rulesTitle || !rulesContent) return;
+  const mode = pointModes[currentPointModeKey] || pointModes.TenPoint;
+  const total = mode.points.reduce((s, p) => s + p.value, 0);
+  const moonEnabled = new Set(['SevenPoint', 'EightPointNoJokers', 'NinePoint', 'TenPoint', 'ElevenPoint', 'ThirteenPoint']).has(currentPointModeKey);
+
+  rulesTitle.textContent = `Rules — ${mode.label}`;
+
+  const pointsList = mode.points
+    .map(p => `<li><span>${p.label}</span><span>${p.value} pt${p.value !== 1 ? 's' : ''}</span></li>`)
+    .join('');
+
+  const moonText = moonEnabled
+    ? 'Shoot the Moon is available: bidder must capture all points for an instant win; otherwise, instant loss.'
+    : 'Shoot the Moon is not available in this mode.';
+
+  const biddingText = `Bids auto-sum to ${total}. The higher bid takes the bid. Bidder must meet or exceed their bid or lose the bid amount. Opponent scores the points they capture.`;
+  const scoringText = 'Score the hand at end of play. You can select cards or switch to manual totals.';
+  const winText = 'To win, a team must reach the winning score and must have taken and made the most recent bid.';
+
+  // Game-specific explanation for modes that include a Game point
+  const hasGamePoint = mode.points.some(p => p.key === 'Game');
+  let gameSection = '';
+  if (hasGamePoint) {
+    gameSection = `
+      <div class="rules-section">
+        <h3>Game Scoring</h3>
+        <ul>
+          <li>Team with the most card points wins <b>Game</b> (1 point).</li>
+          <li>Card values: <b>Ten=10</b>, <b>Ace=4</b>, <b>King=3</b>, <b>Queen=2</b>, <b>Jack=1</b>.</li>
+          <li>All other ranks and any Jokers count 0 toward Game.</li>
+          <li>Counts from all tricks your team captures (not just trump).</li>
+        </ul>
+      </div>
+    `;
+  }
+
+  rulesContent.innerHTML = `
+    <div class="rules-section">
+      <h3>Points (${total} total)</h3>
+      <ul class="rules-points">${pointsList}</ul>
+    </div>
+    <div class="rules-section">
+      <h3>Bidding</h3>
+      <p>${biddingText}</p>
+    </div>
+    <div class="rules-section">
+      <h3>Moon Shot</h3>
+      <p>${moonText}</p>
+    </div>
+    <div class="rules-section">
+      <h3>Scoring & Win</h3>
+      <p>${scoringText}</p>
+      <p>${winText}</p>
+    </div>
+    ${gameSection}
+  `;
 }
 
 // Initialize when DOM is loaded
