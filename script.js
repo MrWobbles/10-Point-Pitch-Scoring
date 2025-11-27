@@ -224,10 +224,9 @@ function init() {
   if (teamConfigSelect) teamConfigSelect.value = savedTeamCfg;
 
   // Initialize Firebase UI if available
-  if (typeof isSpectatorModeAvailable !== 'undefined' && isSpectatorModeAvailable) {
-    if (spectatorToggleBtn) spectatorToggleBtn.hidden = false;
-    if (startSharingSection) startSharingSection.hidden = false;
-  }
+  // Show spectator controls; enable if Firebase is configured
+  if (spectatorToggleBtn) spectatorToggleBtn.hidden = false;
+  if (startSharingSection) startSharingSection.hidden = false;
 
   // Start game timer if not already started
   if (!gameState.gameStartTime) {

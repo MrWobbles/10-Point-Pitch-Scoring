@@ -30,7 +30,7 @@ const firebaseConfig = {
 let database = null;
 let isSpectatorModeAvailable = false;
 
-if (typeof firebase !== 'undefined' && isFirebaseConfigured()) {
+if (typeof firebase !== 'undefined') {
   try {
     firebase.initializeApp(firebaseConfig);
     database = firebase.database();
