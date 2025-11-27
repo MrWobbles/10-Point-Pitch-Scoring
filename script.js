@@ -433,6 +433,9 @@ function updateAllTeamNames() {
 
 // Save game to localStorage and sync to Firebase if sharing
 function saveGame() {
+  // Don't save if in spectator mode
+  if (isSpectatorMode) return;
+  
   gameState.team1.name = team1Name.textContent;
   gameState.team2.name = team2Name.textContent;
   gameState.winningScore = parseInt(winningScoreInput.value);
@@ -463,7 +466,9 @@ function updateDisplay() {
   updateHistory();
   updateBidTeamNames();
   undoBtn.disabled = gameState.history.length === 0;
-  saveGame();
+  if (!isSpectatorMode) {
+    saveGame();
+  }
   checkWinner();
 }
 
