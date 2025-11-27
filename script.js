@@ -1,14 +1,34 @@
-// Point values for each card
-const pointValues = {
-  'A': 1,
-  'J': 1,
-  'Jick': 1,
-  'HighJoker': 1,
-  'LowJoker': 1,
-  '10': 1,
-  '3': 3,
-  '2': 1
+// Point modes and values
+const pointModes = {
+  TenPoint: {
+    label: '10-Point (Jokers On)',
+    points: [
+      { key: 'A', label: 'A', value: 1 },
+      { key: 'J', label: 'J', value: 1 },
+      { key: 'Jick', label: 'Jick', value: 1 },
+      { key: 'HighJoker', label: 'High Joker', value: 1 },
+      { key: 'LowJoker', label: 'Low Joker', value: 1 },
+      { key: '10', label: '10', value: 1 },
+      { key: '3', label: '3', value: 3 },
+      { key: '2', label: '2', value: 1 }
+    ]
+  },
+  EightPointNoJokers: {
+    label: '8-Point (No Jokers)',
+    points: [
+      { key: 'A', label: 'A', value: 1 },
+      { key: 'J', label: 'J', value: 1 },
+      { key: 'Jick', label: 'Jick', value: 1 },
+      { key: '10', label: '10', value: 1 },
+      { key: '3', label: '3', value: 3 },
+      { key: '2', label: '2', value: 1 }
+    ]
+  }
 };
+
+let currentPointModeKey = 'TenPoint';
+let pointValues = {};
+let totalPointsInMode = 10;
 
 // Game state
 let gameState = {
@@ -61,6 +81,7 @@ const closeModalBtn = document.getElementById('closeModal');
 const menuToggleBtn = document.getElementById('menuToggle');
 const settingsDrawer = document.getElementById('settingsDrawer');
 const drawerCloseBtn = document.getElementById('drawerClose');
+const pointModeSelect = document.getElementById('pointMode');
 
 // Bid elements
 const bidInputs = document.querySelectorAll('.bid-input');
@@ -87,6 +108,13 @@ const shootMoonCheckbox = document.getElementById('shootMoonCheckbox');
 // Initialize the game
 function init() {
   loadGame();
+  // Load point mode
+  const savedMode = localStorage.getItem('pitchScorePointMode');
+  if (savedMode && pointModes[savedMode]) {
+    currentPointModeKey = savedMode;
+  }
+  applyPointMode(currentPointModeKey);
+  if (pointModeSelect) pointModeSelect.value = currentPointModeKey;
   updateDisplay();
   updateBidTeamNames();
   updateHandTeamNames();
@@ -103,6 +131,59 @@ function loadGame() {
     updateAllTeamNames();
     winningScoreInput.value = gameState.winningScore;
   }
+}
+
+// Apply a point mode: sets point values, renders buttons, updates limits
+function applyPointMode(modeKey) {
+  const mode = pointModes[modeKey] || pointModes.TenPoint;
+  currentPointModeKey = modeKey;
+  localStorage.setItem('pitchScorePointMode', modeKey);
+  // Build point values map and total
+  pointValues = {};
+  totalPointsInMode = 0;
+  mode.points.forEach(p => {
+    pointValues[p.key] = p.value;
+    totalPointsInMode += p.value;
+  });
+
+  // Update bid input max and clamp values
+  const team1BidInput = document.querySelector('.bid-input[data-team="1"]');
+  const team2BidInput = document.querySelector('.bid-input[data-team="2"]');
+  [team1BidInput, team2BidInput].forEach(inp => {
+    if (!inp) return;
+    inp.max = totalPointsInMode;
+    let v = parseInt(inp.value) || 0;
+    if (v > totalPointsInMode) inp.value = totalPointsInMode;
+  });
+
+  // Update manual input max
+  if (manualTeam1Input) manualTeam1Input.max = totalPointsInMode;
+  if (manualTeam2Input) manualTeam2Input.max = totalPointsInMode;
+  currentHand.manual.team1 = Math.min(currentHand.manual.team1, totalPointsInMode);
+  currentHand.manual.team2 = Math.min(currentHand.manual.team2, totalPointsInMode);
+
+  // Re-render hand point buttons for both teams
+  const grids = document.querySelectorAll('.hand-points-grid');
+  grids.forEach(grid => {
+    const team = grid.closest('.hand-team').querySelector('.hand-team-name').dataset.team;
+    grid.innerHTML = mode.points.map(p => `<button class="hand-point-btn" data-team="${team}" data-point="${p.key}">${p.label}</button>`).join('');
+  });
+
+  // Re-bind point button listeners and clear current selections
+  currentHand.team1.clear();
+  currentHand.team2.clear();
+  handPointBtnsRefetch();
+  updateHandTotals();
+  // Re-sync bids to sum to total
+  syncBidInputs('1');
+}
+
+function handPointBtnsRefetch() {
+  // Refresh query and click bindings for dynamic buttons
+  const btns = document.querySelectorAll('.hand-point-btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => toggleHandPoint(btn));
+  });
 }
 
 // Update all team name displays
@@ -165,17 +246,17 @@ function syncBidInputs(changedTeam) {
 
   if (changedTeam === '1') {
     const team1Bid = parseInt(team1BidInput.value) || 0;
-    const remaining = Math.max(0, 10 - team1Bid);
+    const remaining = Math.max(0, totalPointsInMode - team1Bid);
     team2BidInput.value = remaining;
   } else {
     const team2Bid = parseInt(team2BidInput.value) || 0;
-    const remaining = Math.max(0, 10 - team2Bid);
+    const remaining = Math.max(0, totalPointsInMode - team2Bid);
     team1BidInput.value = remaining;
   }
 
   // Auto-select bid taker based on higher bid
-  const b1 = parseInt(team1BidInput.value) || 0;
-  const b2 = parseInt(team2BidInput.value) || 0;
+  const b1 = Math.min(parseInt(team1BidInput.value) || 0, totalPointsInMode);
+  const b2 = Math.min(parseInt(team2BidInput.value) || 0, totalPointsInMode);
   let selected = null;
   if (b1 > b2) selected = '1';
   else if (b2 > b1) selected = '2';
@@ -301,7 +382,7 @@ function applyHand() {
     const bidderKey = bidTeam === 1 ? 'team1' : 'team2';
     const bidderName = gameState[bidderKey].name;
 
-    if (bidderTotal === 10) {
+    if (bidderTotal === totalPointsInMode) {
       // Moon shot successful - instant win
       lastHandResult = { bidTaker: bidTeam, madeBid: true };
       const desc = bidTeam === 1 ? description1 : description2;
@@ -494,6 +575,13 @@ function attachEventListeners() {
   // Apply and clear hand buttons
   applyHandBtn.addEventListener('click', applyHand);
   clearHandBtn.addEventListener('click', clearHand);
+
+  // Point mode change
+  if (pointModeSelect) {
+    pointModeSelect.addEventListener('change', (e) => {
+      applyPointMode(e.target.value);
+    });
+  }
 
   // Bid taker change: no logic needed beyond storing selection; labels update via name changes
 
