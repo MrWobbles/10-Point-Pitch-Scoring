@@ -165,6 +165,7 @@ const menuToggleBtn = document.getElementById('menuToggle');
 const settingsDrawer = document.getElementById('settingsDrawer');
 const drawerCloseBtn = document.getElementById('drawerClose');
 const pointModeSelect = document.getElementById('pointMode');
+const gameTitle = document.querySelector('.topbar-left h1');
 const teamConfigSelect = document.getElementById('teamConfig');
 const rulesToggleBtn = document.getElementById('rulesToggle');
 const rulesDrawer = document.getElementById('rulesDrawer');
@@ -329,6 +330,12 @@ function applyPointMode(modeKey) {
   }
   // Refresh rules content
   renderRules();
+
+  // Update page title
+  if (gameTitle) {
+    gameTitle.textContent = mode.label;
+  }
+  document.title = `${mode.label} - Pitch Score Keeper`;
 }
 
 // Map card keys to SVG file paths based on trump suit
