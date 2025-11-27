@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10-Point Pitch Score Keeper</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="container">
+    <header class="topbar">
+      <h1>10-Point Pitch</h1>
+      <button id="menuToggle" class="btn btn-primary" aria-controls="settingsDrawer"
+        aria-expanded="false">Settings</button>
+    </header>
+
+    <aside id="settingsDrawer" class="drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <h2>Settings</h2>
+        <button id="drawerClose" class="btn btn-fail" aria-label="Close Settings">Close ✕</button>
+      </div>
+
+      <div class="drawer-content">
+        <section class="team-names-section">
+          <h3>Team Names</h3>
+          <div class="team-name-inputs">
+            <div class="name-input-group">
+              <label for="team1NameInput">Team 1:</label>
+              <input type="text" id="team1NameInput" class="team-name-input" placeholder="Team 1" maxlength="20">
+            </div>
+            <div class="name-input-group">
+              <label for="team2NameInput">Team 2:</label>
+              <input type="text" id="team2NameInput" class="team-name-input" placeholder="Team 2" maxlength="20">
+            </div>
+          </div>
+        </section>
+
+        <section class="game-settings">
+          <div class="setting">
+            <label for="winningScore">Winning Score:</label>
+            <input type="number" id="winningScore" value="52" min="1">
+          </div>
+          <button id="newGame" class="btn btn-secondary">New Game</button>
+        </section>
+
+        <section class="history drawer-history">
+          <h3>Score History</h3>
+          <div id="historyList"></div>
+          <button id="undoBtn" class="btn btn-secondary" disabled>Undo Last Score</button>
+        </section>
+      </div>
+    </aside>
+
+    <div class="sticky-top">
+      <div class="sticky-inner">
+        <div class="scoreboard compact">
+          <div class="team" id="team1">
+            <h2 contenteditable="true" class="team-name">Team 1</h2>
+            <div class="score-display">
+              <span class="score">0</span>
+            </div>
+          </div>
+          <div class="team" id="team2">
+            <h2 contenteditable="true" class="team-name">Team 2</h2>
+            <div class="score-display">
+              <span class="score">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bid-section">
+      <h2>Bid</h2>
+      <div class="bid-tracker">
+        <div class="bid-team">
+          <h3 class="bid-team-name" data-team="1">Team 1</h3>
+          <div class="bid-controls">
+            <label>Bid Amount:</label>
+            <input type="number" class="bid-input" data-team="1" min="1" max="10" value="5">
+          </div>
+        </div>
+        <div class="bid-team">
+          <h3 class="bid-team-name" data-team="2">Team 2</h3>
+          <div class="bid-controls">
+            <label>Bid Amount:</label>
+            <input type="number" class="bid-input" data-team="2" min="1" max="10" value="5">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="current-hand-section">
+      <h2>Current Hand</h2>
+      <div class="score-mode-toggle" role="group" aria-label="Score Entry Mode">
+        <button class="toggle-btn active" data-mode="cards" id="modeCardsBtn">Select Cards</button>
+        <button class="toggle-btn" data-mode="manual" id="modeManualBtn">Manual Input</button>
+      </div>
+      <div class="hand-tracker">
+        <div class="hand-team">
+          <h3 class="hand-team-name" data-team="1">Team 1</h3>
+          <div class="hand-points-grid">
+            <button class="hand-point-btn" data-team="1" data-point="A">A</button>
+            <button class="hand-point-btn" data-team="1" data-point="J">J</button>
+            <button class="hand-point-btn" data-team="1" data-point="Jick">Jick</button>
+            <button class="hand-point-btn" data-team="1" data-point="HighJoker">High Joker</button>
+            <button class="hand-point-btn" data-team="1" data-point="LowJoker">Low Joker</button>
+            <button class="hand-point-btn" data-team="1" data-point="10">10</button>
+            <button class="hand-point-btn" data-team="1" data-point="3">3</button>
+            <button class="hand-point-btn" data-team="1" data-point="2">2</button>
+          </div>
+          <div class="hand-total">Hand Total: <span class="hand-total-value" data-team="1">0</span></div>
+          <div class="hand-manual" data-team="1" hidden>
+            <label class="manual-label" for="manualTeam1">Manual Points:</label>
+            <input type="number" id="manualTeam1" class="manual-input" min="0" max="10" value="0">
+          </div>
+        </div>
+        <div class="hand-team">
+          <h3 class="hand-team-name" data-team="2">Team 2</h3>
+          <div class="hand-points-grid">
+            <button class="hand-point-btn" data-team="2" data-point="A">A</button>
+            <button class="hand-point-btn" data-team="2" data-point="J">J</button>
+            <button class="hand-point-btn" data-team="2" data-point="Jick">Jick</button>
+            <button class="hand-point-btn" data-team="2" data-point="HighJoker">High Joker</button>
+            <button class="hand-point-btn" data-team="2" data-point="LowJoker">Low Joker</button>
+            <button class="hand-point-btn" data-team="2" data-point="10">10</button>
+            <button class="hand-point-btn" data-team="2" data-point="3">3</button>
+            <button class="hand-point-btn" data-team="2" data-point="2">2</button>
+          </div>
+          <div class="hand-total">Hand Total: <span class="hand-total-value" data-team="2">0</span></div>
+          <div class="hand-manual" data-team="2" hidden>
+            <label class="manual-label" for="manualTeam2">Manual Points:</label>
+            <input type="number" id="manualTeam2" class="manual-input" min="0" max="10" value="0">
+          </div>
+        </div>
+      </div>
+      <div class="hand-meta">
+        <div class="bid-taker">
+          <label>Bid Taker:</label>
+          <div class="bid-taker-options">
+            <label class="bid-taker-option"><input type="radio" name="bidTaker" value="1"> <span
+                data-team-label="1">Team 1</span></label>
+            <label class="bid-taker-option"><input type="radio" name="bidTaker" value="2"> <span
+                data-team-label="2">Team 2</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="hand-actions">
+        <button id="applyHandBtn" class="btn btn-primary">Apply Hand to Score</button>
+        <button id="clearHandBtn" class="btn btn-secondary">Clear Hand</button>
+      </div>
+    </div>
+
+
+  </div>
+
+  <div id="winnerModal" class="modal">
+    <div class="modal-content">
+      <h2>🎉 Game Over! 🎉</h2>
+      <p id="winnerText"></p>
+      <button id="closeModal" class="btn">Start New Game</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
