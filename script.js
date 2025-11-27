@@ -41,6 +41,9 @@ let lastHandResult = {
   madeBid: false  // true if bid taker met/exceeded their bid in the last hand
 };
 
+// Prevent further scoring/actions once a winner is declared
+let gameOver = false;
+
 // DOM elements
 const team1Element = document.getElementById('team1');
 const team2Element = document.getElementById('team2');
@@ -247,6 +250,10 @@ function clearHand() {
 
 // Apply hand to score
 function applyHand() {
+  if (gameOver) {
+    alert('Game is over. Start a new game to continue.');
+    return;
+  }
   const team1Total = currentHand.mode === 'manual'
     ? (parseInt(currentHand.manual.team1) || 0)
     : Array.from(currentHand.team1).reduce((sum, point) => sum + pointValues[point], 0);
@@ -296,19 +303,19 @@ function applyHand() {
 
     if (bidderTotal === 10) {
       // Moon shot successful - instant win
-      showWinner(bidderName, gameState[bidderKey].score, true);
-      const desc = bidTeam === 1 ? description1 : description2;
-      addPoints(bidTeam, 0, `${desc} - 🌙 SHOT THE MOON! Instant Win!`);
       lastHandResult = { bidTaker: bidTeam, madeBid: true };
+      const desc = bidTeam === 1 ? description1 : description2;
+      showWinner(bidderName, gameState[bidderKey].score, true);
+      addPoints(bidTeam, 0, `${desc} - 🌙 SHOT THE MOON! Instant Win!`);
     } else {
       // Moon shot failed - instant loss
       const otherTeam = bidTeam === 1 ? 2 : 1;
       const otherKey = otherTeam === 1 ? 'team1' : 'team2';
       const otherName = gameState[otherKey].name;
+      lastHandResult = { bidTaker: bidTeam, madeBid: false };
       showWinner(otherName, gameState[otherKey].score, true);
       const desc = bidTeam === 1 ? description1 : description2;
       addPoints(bidTeam, 0, `${desc} - 🌙 MISSED THE MOON! Instant Loss!`);
-      lastHandResult = { bidTaker: bidTeam, madeBid: false };
     }
     clearHand();
     return;
@@ -399,6 +406,7 @@ function updateHistory() {
 
 // Check for winner
 function checkWinner() {
+  if (gameOver) return;
   const winScore = parseInt(winningScoreInput.value);
   // Only declare winner if the team that reached the winning score
   // also took and made the bid in the most recently applied hand.
@@ -411,6 +419,7 @@ function checkWinner() {
 
 // Show winner modal
 function showWinner(teamName, score, isMoonShot = false) {
+  gameOver = true;
   if (isMoonShot) {
     winnerText.textContent = `🌙 ${teamName} wins by shooting the moon! 🌙`;
   } else {
@@ -428,6 +437,7 @@ function startNewGame() {
     winnerModal.classList.remove('show');
     clearHand();
     lastHandResult = { bidTaker: null, madeBid: false };
+    gameOver = false;
     updateDisplay();
   }
 }
