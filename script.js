@@ -892,15 +892,17 @@ function attachEventListeners() {
     if (!team1Name.textContent.trim()) {
       team1Name.textContent = 'Team 1';
     }
+    gameState.team1.name = team1Name.textContent;
+    updateAllTeamNames();
     saveGame();
-    updateBidTeamNames();
   });
   team2Name.addEventListener('blur', () => {
     if (!team2Name.textContent.trim()) {
       team2Name.textContent = 'Team 2';
     }
+    gameState.team2.name = team2Name.textContent;
+    updateAllTeamNames();
     saveGame();
-    updateBidTeamNames();
   });
 
   // Team name input changes
