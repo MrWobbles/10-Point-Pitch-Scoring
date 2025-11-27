@@ -121,7 +121,9 @@ let gameState = {
     score: 0
   },
   winningScore: 52,
-  history: []
+  history: [],
+  gameStartTime: null, // Timestamp when game started
+  shareCode: null // Code for spectators to join
 };
 
 // Current hand state
@@ -169,6 +171,21 @@ const rulesCloseBtn = document.getElementById('rulesClose');
 const rulesTitle = document.getElementById('rulesTitle');
 const rulesContent = document.getElementById('rulesContent');
 
+// Spectator & sharing elements
+const spectatorToggleBtn = document.getElementById('spectatorToggle');
+const startSharingBtn = document.getElementById('startSharingBtn');
+const stopSharingBtn = document.getElementById('stopSharingBtn');
+const shareCodeDisplay = document.getElementById('shareCodeDisplay');
+const copyCodeBtn = document.getElementById('copyCodeBtn');
+const shareCodeSection = document.getElementById('shareCodeSection');
+const startSharingSection = document.getElementById('startSharingSection');
+const spectatorInputSection = document.getElementById('spectatorInputSection');
+const spectatorCodeInput = document.getElementById('spectatorCodeInput');
+const joinGameBtn = document.getElementById('joinGameBtn');
+const exitSpectatorBtn = document.getElementById('exitSpectatorBtn');
+const gameTimerEl = document.getElementById('gameTimer');
+const timerDisplay = document.getElementById('timerDisplay');
+
 // Bid elements
 const bidInputs = document.querySelectorAll('.bid-input');
 const bidTeamNames = document.querySelectorAll('.bid-team-name');
@@ -205,6 +222,20 @@ function init() {
   // Load teams/players config (metadata for now; UI remains 2 teams)
   const savedTeamCfg = localStorage.getItem('pitchTeamConfig') || '2p';
   if (teamConfigSelect) teamConfigSelect.value = savedTeamCfg;
+
+  // Initialize Firebase UI if available
+  if (typeof isSpectatorModeAvailable !== 'undefined' && isSpectatorModeAvailable) {
+    if (spectatorToggleBtn) spectatorToggleBtn.hidden = false;
+    if (startSharingSection) startSharingSection.hidden = false;
+  }
+
+  // Start game timer if not already started
+  if (!gameState.gameStartTime) {
+    gameState.gameStartTime = Date.now();
+    saveGame();
+  }
+  startGameTimer();
+
   updateDisplay();
   updateBidTeamNames();
   updateHandTeamNames();
@@ -295,12 +326,24 @@ function updateAllTeamNames() {
   updateHandTeamNames();
 }
 
-// Save game to localStorage
+// Save game to localStorage and sync to Firebase if sharing
 function saveGame() {
   gameState.team1.name = team1Name.textContent;
   gameState.team2.name = team2Name.textContent;
   gameState.winningScore = parseInt(winningScoreInput.value);
   localStorage.setItem('pitchScoreGame', JSON.stringify(gameState));
+
+  // Sync to Firebase if hosting
+  if (gameState.shareCode && database && !isSpectatorMode) {
+    const gameRef = database.ref(`games/${gameState.shareCode}`);
+    gameRef.update({
+      state: gameState,
+      pointMode: currentPointModeKey,
+      lastUpdate: Date.now()
+    }).catch(err => {
+      console.error('❌ Failed to sync to Firebase:', err);
+    });
+  }
 }
 
 // Update display
@@ -615,6 +658,7 @@ function startNewGame() {
     gameState.team1.score = 0;
     gameState.team2.score = 0;
     gameState.history = [];
+    gameState.gameStartTime = Date.now(); // Reset timer
     winnerModal.classList.remove('show');
     clearHand();
     lastHandResult = { bidTaker: null, madeBid: false };
@@ -788,6 +832,226 @@ function attachEventListeners() {
       startNewGame();
     }
   });
+
+  // Spectator mode & sharing event listeners
+  if (spectatorToggleBtn) {
+    spectatorToggleBtn.addEventListener('click', toggleSpectatorInput);
+  }
+  if (startSharingBtn) {
+    startSharingBtn.addEventListener('click', startSharing);
+  }
+  if (stopSharingBtn) {
+    stopSharingBtn.addEventListener('click', stopSharing);
+  }
+  if (copyCodeBtn) {
+    copyCodeBtn.addEventListener('click', copyShareCode);
+  }
+  if (joinGameBtn) {
+    joinGameBtn.addEventListener('click', joinAsSpectator);
+  }
+  if (exitSpectatorBtn) {
+    exitSpectatorBtn.addEventListener('click', exitSpectatorMode);
+  }
+}
+
+// ========== SPECTATOR MODE & FIREBASE SYNC ==========
+
+let isSpectatorMode = false;
+let firebaseListener = null;
+let gameTimerInterval = null;
+
+// Generate a random 6-character share code
+function generateShareCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude ambiguous chars
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+// Start sharing game (host)
+function startSharing() {
+  if (!database) {
+    alert('Firebase not configured. See firebase-config.js for setup instructions.');
+    return;
+  }
+
+  const code = generateShareCode();
+  gameState.shareCode = code;
+
+  // Create game session in Firebase
+  const gameRef = database.ref(`games/${code}`);
+  gameRef.set({
+    host: true,
+    state: gameState,
+    pointMode: currentPointModeKey,
+    lastUpdate: Date.now()
+  }).then(() => {
+    if (shareCodeDisplay) shareCodeDisplay.textContent = code;
+    if (shareCodeSection) shareCodeSection.hidden = false;
+    if (startSharingSection) startSharingSection.hidden = true;
+    saveGame();
+    console.log(`✅ Game shared with code: ${code}`);
+  }).catch(err => {
+    console.error('❌ Failed to share game:', err);
+    alert('Failed to share game. Check console for details.');
+  });
+}
+
+// Stop sharing game (host)
+function stopSharing() {
+  if (!gameState.shareCode || !database) return;
+
+  const gameRef = database.ref(`games/${gameState.shareCode}`);
+  gameRef.remove().then(() => {
+    gameState.shareCode = null;
+    if (shareCodeSection) shareCodeSection.hidden = true;
+    if (startSharingSection) startSharingSection.hidden = false;
+    saveGame();
+    console.log('✅ Stopped sharing game');
+  }).catch(err => {
+    console.error('❌ Failed to stop sharing:', err);
+  });
+}
+
+// Copy share code to clipboard
+function copyShareCode() {
+  const code = shareCodeDisplay?.textContent;
+  if (!code || code === '------') return;
+
+  navigator.clipboard.writeText(code).then(() => {
+    const original = copyCodeBtn.textContent;
+    copyCodeBtn.textContent = '✓ Copied!';
+    setTimeout(() => { copyCodeBtn.textContent = original; }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    alert(`Code: ${code}`);
+  });
+}
+
+// Toggle spectator input UI
+function toggleSpectatorInput() {
+  if (!spectatorInputSection) return;
+  const isHidden = spectatorInputSection.hidden;
+  spectatorInputSection.hidden = !isHidden;
+  if (!isHidden && spectatorCodeInput) {
+    spectatorCodeInput.focus();
+  }
+}
+
+// Join as spectator
+function joinAsSpectator() {
+  if (!database) {
+    alert('Firebase not configured. See firebase-config.js for setup instructions.');
+    return;
+  }
+
+  const code = spectatorCodeInput?.value.trim().toUpperCase();
+  if (!code || code.length !== 6) {
+    alert('Please enter a valid 6-character game code');
+    return;
+  }
+
+  const gameRef = database.ref(`games/${code}`);
+  gameRef.once('value').then(snapshot => {
+    if (!snapshot.exists()) {
+      alert('Game not found. Check the code and try again.');
+      return;
+    }
+
+    // Enter spectator mode
+    isSpectatorMode = true;
+    gameState.shareCode = code;
+
+    // Hide all interactive elements
+    document.querySelectorAll('.bid-section, .current-hand-section, .hand-actions').forEach(el => el.hidden = true);
+    if (newGameBtn) newGameBtn.hidden = true;
+    if (undoBtn) undoBtn.hidden = true;
+    if (winningScoreInput) winningScoreInput.disabled = true;
+    if (pointModeSelect) pointModeSelect.disabled = true;
+    if (teamConfigSelect) teamConfigSelect.disabled = true;
+    if (team1NameInput) team1NameInput.disabled = true;
+    if (team2NameInput) team2NameInput.disabled = true;
+    if (startSharingSection) startSharingSection.hidden = true;
+    if (spectatorInputSection) spectatorInputSection.hidden = true;
+    if (exitSpectatorBtn) exitSpectatorBtn.hidden = false;
+
+    // Disable contenteditable
+    if (team1Name) team1Name.contentEditable = 'false';
+    if (team2Name) team2Name.contentEditable = 'false';
+
+    // Listen for real-time updates
+    firebaseListener = gameRef.on('value', snapshot => {
+      const data = snapshot.val();
+      if (data && data.state) {
+        gameState = data.state;
+        currentPointModeKey = data.pointMode || 'TenPoint';
+        applyPointMode(currentPointModeKey);
+        if (pointModeSelect) pointModeSelect.value = currentPointModeKey;
+        updateDisplay();
+        updateAllTeamNames();
+        renderRules();
+      }
+    });
+
+    console.log(`✅ Watching game: ${code}`);
+  }).catch(err => {
+    console.error('❌ Failed to join game:', err);
+    alert('Failed to join game. Check console for details.');
+  });
+}
+
+// Exit spectator mode
+function exitSpectatorMode() {
+  if (firebaseListener && gameState.shareCode) {
+    const gameRef = database.ref(`games/${gameState.shareCode}`);
+    gameRef.off('value', firebaseListener);
+    firebaseListener = null;
+  }
+
+  isSpectatorMode = false;
+  gameState.shareCode = null;
+
+  // Restore interactive elements
+  document.querySelectorAll('.bid-section, .current-hand-section, .hand-actions').forEach(el => el.hidden = false);
+  if (newGameBtn) newGameBtn.hidden = false;
+  if (undoBtn) undoBtn.hidden = false;
+  if (winningScoreInput) winningScoreInput.disabled = false;
+  if (pointModeSelect) pointModeSelect.disabled = false;
+  if (teamConfigSelect) teamConfigSelect.disabled = false;
+  if (team1NameInput) team1NameInput.disabled = false;
+  if (team2NameInput) team2NameInput.disabled = false;
+  if (startSharingSection) startSharingSection.hidden = false;
+  if (exitSpectatorBtn) exitSpectatorBtn.hidden = true;
+  if (spectatorInputSection) spectatorInputSection.hidden = true;
+
+  // Re-enable contenteditable
+  if (team1Name) team1Name.contentEditable = 'true';
+  if (team2Name) team2Name.contentEditable = 'true';
+
+  // Reset to local state
+  loadGame();
+  updateDisplay();
+  updateAllTeamNames();
+
+  console.log('✅ Exited spectator mode');
+}
+
+// Game timer
+function startGameTimer() {
+  if (gameTimerInterval) clearInterval(gameTimerInterval);
+  if (gameTimerEl) gameTimerEl.hidden = false;
+
+  gameTimerInterval = setInterval(() => {
+    if (!gameState.gameStartTime) return;
+    const elapsed = Date.now() - gameState.gameStartTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+    if (timerDisplay) {
+      timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+  }, 1000);
 }
 
 // Update UI according to score mode

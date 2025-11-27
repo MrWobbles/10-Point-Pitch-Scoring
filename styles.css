@@ -57,6 +57,31 @@ h1 {
   margin-bottom: 20px;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.game-timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(77, 238, 234, 0.15);
+  border: 1px solid var(--vw-cyan);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--vw-cyan);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(77, 238, 234, 0.25);
+}
+
+.timer-icon {
+  font-size: 1.1rem;
+}
+
 .topbar-actions {
   display: flex;
   align-items: center;
@@ -764,9 +789,59 @@ h1 {
 }
 
 .btn-small {
-  padding: 10px 20px;
-  font-size: 1.2rem;
-  min-width: 60px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  min-width: auto;
+}
+
+.share-code-section {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.share-code-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.share-code {
+  padding: 10px 16px;
+  background: rgba(77, 238, 234, 0.12);
+  border: 2px solid var(--vw-cyan);
+  border-radius: 8px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--vw-cyan);
+  font-family: "Courier New", monospace;
+  text-shadow: 0 2px 8px rgba(77, 238, 234, 0.4);
+}
+
+.spectator-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.spectator-code-input {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--vw-card-border);
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--vw-white);
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+  max-width: 140px;
+}
+
+.spectator-code-input::placeholder {
+  color: var(--vw-muted);
+  opacity: 0.5;
 }
 
 .btn-minus {
@@ -930,6 +1005,29 @@ h1 {
 
   .topbar {
     margin-bottom: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .topbar-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .topbar-left h1 {
+    font-size: 1.8rem;
+    margin: 0;
+  }
+
+  .game-timer {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   #menuToggle {

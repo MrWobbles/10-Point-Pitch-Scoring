@@ -11,8 +11,15 @@
 <body>
   <div class="container">
     <header class="topbar">
-      <h1>10-Point Pitch</h1>
+      <div class="topbar-left">
+        <h1>10-Point Pitch</h1>
+        <div id="gameTimer" class="game-timer" hidden>
+          <span class="timer-icon">⏱️</span>
+          <span id="timerDisplay">0:00</span>
+        </div>
+      </div>
       <div class="topbar-actions">
+        <button id="spectatorToggle" class="btn btn-secondary" hidden>👁️ Watch Game</button>
         <button id="rulesToggle" class="btn btn-secondary" aria-controls="rulesDrawer"
           aria-expanded="false">Rules</button>
         <button id="menuToggle" class="btn btn-primary" aria-controls="settingsDrawer"
@@ -42,6 +49,26 @@
         </section>
 
         <section class="game-settings">
+          <div class="setting share-code-section" id="shareCodeSection" hidden>
+            <label>Share Code:</label>
+            <div class="share-code-display">
+              <code id="shareCodeDisplay" class="share-code">------</code>
+              <button id="copyCodeBtn" class="btn btn-small btn-secondary">Copy</button>
+              <button id="stopSharingBtn" class="btn btn-small btn-fail">Stop Sharing</button>
+            </div>
+          </div>
+          <div class="setting" id="startSharingSection" hidden>
+            <button id="startSharingBtn" class="btn btn-primary">📡 Share Game Live</button>
+          </div>
+          <div class="setting" id="spectatorInputSection" hidden>
+            <label for="spectatorCodeInput">Enter Game Code:</label>
+            <div class="spectator-input-group">
+              <input type="text" id="spectatorCodeInput" class="spectator-code-input" placeholder="A3X9K2"
+                maxlength="6">
+              <button id="joinGameBtn" class="btn btn-primary">Watch Game</button>
+            </div>
+            <button id="exitSpectatorBtn" class="btn btn-secondary" hidden>Exit Watch Mode</button>
+          </div>
           <div class="setting">
             <label for="winningScore">Winning Score:</label>
             <input type="number" id="winningScore" value="52" min="1">
@@ -208,6 +235,10 @@
     </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="script.js"></script>
 </body>
 
